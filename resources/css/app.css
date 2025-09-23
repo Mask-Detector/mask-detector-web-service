@@ -1,3 +1,58 @@
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+:root {
+  --Black-08: #141414;
+  --Absolute-White: #FFF;
+  --Grey-60: #999;
+  --Red-45: #E50000;
+  --Black-12: #1F1F1F;
+  --Black-06: #0F0F0F;
+  --Black-10: #1A1A1A;
+  --Grey-75: #BFBFBF;
+  --Black-20: #333;
+  --Black-15: #262626;
+}
+
+.bg-black-08 {
+  background-color: var(--Black-08);
+}
+
+.bg-black-06 {
+  background-color: var(--Black-06);
+}
+
+.bg-black-10 {
+  background-color: var(--Black-10);
+}
+
+.bg-black-12 {
+  background-color: var(--Black-12);
+}
+
+.bg-black-15 {
+  background-color: var(--Black-15);
+}
+
+.bg-red-45 {
+  background-color: var(--Red-45);
+}
+
+.text-grey-60 {
+  color: var(--Grey-60);
+}
+
+.text-grey-75 {
+  color: var(--Grey-75);
+}
+
+.border-black-15 {
+  border-color: var(--Black-15);
+}
+
+.border-black-12 {
+  border-color: var(--Black-12);
+}
