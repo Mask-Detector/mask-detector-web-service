@@ -3,9 +3,8 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\MaskDetectionController;
 
-Route::get('/', function () {
-    return view('welcome');
-});
+Route::get('/', [MaskDetectionController::class, 'index']);
+Route::get('/mask-detections', [MaskDetectionController::class, 'index']);
 
 Route::prefix('mask-detection')->group(function () {
     Route::get('/', [MaskDetectionController::class, 'index']); // Get all detections

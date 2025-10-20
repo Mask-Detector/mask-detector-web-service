@@ -16,7 +16,7 @@ class MaskDetectionController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'image' => 'required|string', // Base64 encoded image
+            'image' => 'nullable|string', // Base64 encoded image
             'detection_results' => 'required|array',
             'total_persons' => 'required|integer|min:0',
             'wearing_mask' => 'required|integer|min:0',
@@ -67,32 +67,21 @@ class MaskDetectionController extends Controller
     /**
      * Get all detections with optional filters
      */
-    public function index(Request $request)
+    public function index()
     {
-        $query = MaskDetection::query();
+        $detections = MaskDetection::latest()->paginate(10);
 
-        // Filter by date
-        if ($request->has('date')) {
-            $query->byDate($request->date);
-        }
+        // Statistik sederhana
+        $todayTotal   = MaskDetection::whereDate('detected_at', today())->count();
+        $todayMask    = MaskDetection::whereDate('detected_at', today())->sum('wearing_mask');
+        $todayNoMask  = MaskDetection::whereDate('detected_at', today())->sum('not_wearing_mask');
 
-        // Filter by compliance status
-        if ($request->has('compliance')) {
-            if ($request->compliance === 'compliant') {
-                $query->compliant();
-            } elseif ($request->compliance === 'non_compliant') {
-                $query->nonCompliant();
-            }
-        }
-
-        // Pagination
-        $perPage = $request->get('per_page', 15);
-        $detections = $query->orderBy('detected_at', 'desc')->paginate($perPage);
-
-        return response()->json([
-            'success' => true,
-            'data' => $detections
-        ]);
+        return view('mask-detections.index', compact(
+            'detections',
+            'todayTotal',
+            'todayMask',
+            'todayNoMask'
+        ));
     }
 
     /**
@@ -118,42 +107,33 @@ class MaskDetectionController extends Controller
     /**
      * Get detection statistics
      */
-    public function statistics(Request $request)
+    public function statistics()
     {
-        $query = MaskDetection::query();
+        $total = \App\Models\MaskDetection::count();
 
-        // Filter by date range if provided
-        if ($request->has('start_date')) {
-            $query->where('detected_at', '>=', $request->start_date);
+        if ($total == 0) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Detection not found'
+            ]);
         }
 
-        if ($request->has('end_date')) {
-            $query->where('detected_at', '<=', $request->end_date);
-        }
-
-        $stats = [
-            'total_detections' => $query->count(),
-            'total_persons_detected' => $query->sum('total_persons'),
-            'total_wearing_mask' => $query->sum('wearing_mask'),
-            'total_not_wearing_mask' => $query->sum('not_wearing_mask'),
-            'compliance_rate' => 0,
-            'average_confidence' => $query->avg('confidence_avg'),
-            'detections_today' => MaskDetection::byDate(today())->count(),
-            'compliant_detections' => $query->compliant()->count(),
-            'non_compliant_detections' => $query->nonCompliant()->count()
-        ];
-
-        // Calculate compliance rate
-        if ($stats['total_persons_detected'] > 0) {
-            $stats['compliance_rate'] = round(
-                ($stats['total_wearing_mask'] / $stats['total_persons_detected']) * 100,
-                2
-            );
-        }
+        $totalPersons = \App\Models\MaskDetection::sum('total_persons');
+        $withMask = \App\Models\MaskDetection::sum('wearing_mask');
+        $withoutMask = \App\Models\MaskDetection::sum('not_wearing_mask');
+        $avgConfidence = \App\Models\MaskDetection::avg('confidence_avg');
 
         return response()->json([
             'success' => true,
-            'data' => $stats
+            'data' => [
+                'total_records' => $total, // jumlah row deteksi
+                'total_persons_detected' => $totalPersons,
+                'total_wearing_mask' => $withMask,
+                'total_not_wearing_mask' => $withoutMask,
+                'compliance_rate' => $totalPersons > 0 ? round(($withMask / $totalPersons) * 100, 2) : 0,
+                'avg_confidence' => round($avgConfidence, 2),
+                'last_detection' => \App\Models\MaskDetection::latest('detected_at')->first(),
+            ]
         ]);
     }
 

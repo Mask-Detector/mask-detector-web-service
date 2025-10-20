@@ -8,7 +8,6 @@ Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
 
-// Test CORS endpoint
 Route::get('/test-cors', function () {
     return response()->json([
         'message' => 'CORS is working!',
@@ -25,7 +24,6 @@ Route::post('/test-cors', function () {
     ]);
 });
 
-// Public API routes dengan CORS middleware
 Route::middleware(['cors'])->group(function () {
     Route::prefix('mask-detection')->group(function () {
         Route::get('/', [MaskDetectionController::class, 'index']); // Get all detections
@@ -40,3 +38,19 @@ Route::middleware(['cors'])->group(function () {
 Route::middleware(['auth:sanctum', 'cors'])->group(function () {
     // Route::delete('/mask-detection/{id}', [MaskDetectionController::class, 'destroy']);
 });
+
+// Route::get('/mask-detection/live', function () {
+//     $lastDetection = \App\Models\MaskDetection::latest('detected_at')->first();
+
+//     if (!$lastDetection) {
+//         return response()->json([
+//             'success' => false,
+//             'message' => 'Detection not found'
+//         ]);
+//     }
+
+//     return response()->json([
+//         'success' => true,
+//         'data' => $lastDetection
+//     ]);
+// });
